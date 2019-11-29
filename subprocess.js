@@ -11,14 +11,14 @@ const process = require('process')
 const {spawnSync} = require('child_process')
 
 
-function _runSync(command, args, options = {}) {
+function runSync(command, args, options = {}) {
   const res = spawnSync(command, args, options)
   if (res.status !== 0) throw new Error(res.error)
   return res.stdout.toString()
 }
 
 
-function _spawnInteractive({command, args, options = {}, allowedStatus = [0]}) {
+function spawnInteractive({command, args, options = {}, allowedStatus = [0]}) {
   const res = spawnSync(command, args, {
     ...options,
     stdio: [process.stdin, process.stdout, process.stderr],
@@ -29,7 +29,7 @@ function _spawnInteractive({command, args, options = {}, allowedStatus = [0]}) {
 
 
 function npmInteractive(args, options, allowedStatus) {
-  return _spawnInteractive({
+  return spawnInteractive({
     command: '/usr/bin/npm',
     args,
     options,
@@ -39,19 +39,19 @@ function npmInteractive(args, options, allowedStatus) {
 
 
 function npxInteractive(args, options) {
-  return _spawnInteractive({command: '/usr/bin/npx', args, options})
+  return spawnInteractive({command: '/usr/bin/npx', args, options})
 }
 
 
-function webpackInteractive(...args) {
-  return npxInteractive(['webpack', ...args, '--progress'], {cwd: 'client'})
+function webpackInteractive(args, options) {
+  return npxInteractive(['webpack', ...args, '--progress'], options)
 }
 
 
 function gcloudJson(...args) {
   // TODO[setup]: gcloud can also be used through Node
   //   https://cloud.google.com/nodejs/docs/reference/libraries
-  const res = _runSync('/usr/bin/gcloud', args.concat('--format=json'))
+  const res = runSync('/usr/bin/gcloud', args.concat('--format=json'))
   return JSON.parse(res)
 }
 
@@ -59,7 +59,7 @@ function gcloudJson(...args) {
 function gcloudInteractive(...args) {
   // TODO[setup]: gcloud can also be used through Node
   //   https://cloud.google.com/nodejs/docs/reference/libraries
-  return _spawnInteractive({command: '/usr/bin/gcloud', args})
+  return spawnInteractive({command: '/usr/bin/gcloud', args})
 }
 
 
@@ -69,6 +69,8 @@ function firebaseInteractive(args, options) {
 
 
 module.exports = {
+  runSync,
+  spawnInteractive,
   npmInteractive,
   npxInteractive,
   webpackInteractive,
