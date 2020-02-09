@@ -6,7 +6,7 @@
  */
 
 
- /* eslint-disable no-sync,no-await-in-loop,no-use-before-define,no-console */
+/* eslint-disable no-sync,no-await-in-loop,no-use-before-define,no-console */
 const process = require('process')
 const {spawnSync} = require('child_process')
 
@@ -38,8 +38,13 @@ function npmInteractive(args, options, allowedStatus) {
 }
 
 
-function npxInteractive(args, options) {
-  return spawnInteractive({command: '/usr/bin/npx', args, options})
+function npxInteractive(args, options, allowedStatus) {
+  return spawnInteractive({
+    command: '/usr/bin/npx',
+    args,
+    options,
+    allowedStatus,
+  })
 }
 
 
