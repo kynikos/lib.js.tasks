@@ -5,13 +5,31 @@
  * https://github.com/kynikos/lib.js.tasks/blob/master/LICENSE
  */
 
- /* eslint-disable no-sync,no-await-in-loop,no-use-before-define,no-console */
+/* eslint-disable no-sync,no-await-in-loop,no-use-before-define,no-console */
 const fs = require('fs')
 const path = require('path')
 const readlineSync = require('readline-sync')
 const {
   npmInteractive,
 } = require('./subprocess')
+
+
+function linkSelf({cwd, ask}) {
+  // eslint-disable-next-line global-require
+  const {name} = require(path.resolve(cwd, 'package.json'))
+
+  if (ask) {
+    if (!readlineSync.keyInYN(`Locally link ${name} ?`)) {
+      return false
+    }
+  } else {
+    console.log(`Ensuring that ${name} is linked locally...`)
+  }
+
+  npmInteractive(['link', name], {cwd})
+
+  return true
+}
 
 
 function linkDependencies({cwd, prefixes, ask, recurse}) {
@@ -96,6 +114,7 @@ function maintainPackageDependencies(cwd, prefixesToLink, recursiveLinks) {
 
 
 module.exports = {
+  linkSelf,
   linkDependencies,
   maintainPackageDependencies,
 }
