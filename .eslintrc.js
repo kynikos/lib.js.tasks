@@ -46,6 +46,7 @@ module.exports = {
     'no-continue': 'off',
     'no-empty': ['error', {'allowEmptyCatch': true}],
     'no-eq-null': 'off',
+    'no-extra-parens': 'off',
     'no-extra-semi': 'error',
     'no-inline-comments': 'off',
     'no-labels': 'off',
