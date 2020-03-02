@@ -6,6 +6,8 @@
  */
 
 const fs = require('fs')
+const path = require('path')
+const {runSync, npmSync} = require('./subprocess')
 
 
 function makeComments(prefix, lines) {
@@ -61,8 +63,16 @@ function makeFunction(name, block) {
 }
 
 
-function writePkgbuild(
-  outputPath,
+function sha256sum(filePath) {
+  return runSync('sha256sum', [filePath]).split(' ', 1)[0]
+}
+
+
+async function writePkgbuild(
+  {
+    pkgbuildPath,
+    buildDir,
+  },
   {
     Maintainers = [],
     Contributors = [],
@@ -106,6 +116,23 @@ function writePkgbuild(
     package: packageFn,
   },
 ) {
+  const checksums = [
+    makeArray('md5sums', md5sums, "'"),
+    makeArray('sha1sums', sha1sums, "'"),
+    makeArray('sha224sums', sha224sums, "'"),
+    makeArray('sha256sums', sha256sums, "'"),
+    makeArray('sha384sums', sha384sums, "'"),
+    makeArray('sha512sums', sha512sums, "'"),
+    makeArray('b2sums', b2sums, "'"),
+  ].filter((line) => line != null)
+
+  if (!checksums.length) {
+    const hashes = source.map((sourceUrl) => {
+      return sha256sum(path.join(buildDir, path.basename(sourceUrl)))
+    })
+    checksums.push(makeArray('sha256sums', hashes, "'"))
+  }
+
   const contentLines = [
     ...makeComments('Maintainer: ', Maintainers),
     ...makeComments('Contributor: ', Contributors),
@@ -134,13 +161,7 @@ function writePkgbuild(
     makeArray('source', source, '"'),
     makeArray('noextract', noextract, '"'),
     makeArray('validpgpkeys', validpgpkeys, "'"),
-    makeArray('md5sums', md5sums, "'"),
-    makeArray('sha1sums', sha1sums, "'"),
-    makeArray('sha224sums', sha224sums, "'"),
-    makeArray('sha256sums', sha256sums, "'"),
-    makeArray('sha384sums', sha384sums, "'"),
-    makeArray('sha512sums', sha512sums, "'"),
-    makeArray('b2sums', b2sums, "'"),
+    ...checksums,
     prepare ? '' : null,
     makeFunction('prepare', prepare),
     pkgverFn ? '' : null,
@@ -156,9 +177,9 @@ function writePkgbuild(
 
   const content = contentLines.filter((line) => line != null).join('\n')
 
-  if (outputPath) {
+  if (pkgbuildPath) {
     // eslint-disable-next-line no-sync
-    fs.writeFileSync(outputPath, content)
+    fs.writeFileSync(pkgbuildPath, content)
   }
 
   return content
@@ -166,7 +187,10 @@ function writePkgbuild(
 
 
 function writePkgbuildNodeJs(
-  outputPath,
+  {
+    pkgbuildPath,
+    buildDir,
+  },
   {
     Maintainers,
     Contributors,
@@ -194,13 +218,16 @@ function writePkgbuildNodeJs(
     options,
     install,
     changelog,
-    source,
-    noextract,
+    // source,
+    sourceExtra = [],
+    // noextract
+    noextractExtra = [],
     validpgpkeys,
     md5sums,
     sha1sums,
     sha224sums,
-    sha256sums,
+    // sha256sums,
+    sha256sumsExtra = [],
     sha384sums,
     sha512sums,
     b2sums,
@@ -215,8 +242,19 @@ function writePkgbuildNodeJs(
     packagePost,
   },
 ) {
+  const tarball0 = `${pkgname}-${pkgver}.tgz`
+  const tarball1 = path.join(buildDir, tarball0)
+
+  npmSync(['pack'])
+
+  // eslint-disable-next-line no-sync
+  fs.renameSync(tarball0, tarball1)
+
   return writePkgbuild(
-    outputPath,
+    {
+      pkgbuildPath,
+      buildDir,
+    },
     {
       Maintainers,
       Contributors,
@@ -241,13 +279,18 @@ function writePkgbuildNodeJs(
       options,
       install,
       changelog,
-      source,
-      noextract,
+      source: [
+        // eslint-disable-next-line no-template-curly-in-string
+        'https://registry.npmjs.org/${pkgname}/-/${pkgname}-${pkgver}.tgz',
+        ...sourceExtra,
+      ],
+      // eslint-disable-next-line no-template-curly-in-string
+      noextract: ['${pkgname}-${pkgver}.tgz', ...noextractExtra],
       validpgpkeys,
       md5sums,
       sha1sums,
       sha224sums,
-      sha256sums,
+      sha256sums: [sha256sum(tarball1), ...sha256sumsExtra],
       sha384sums,
       sha512sums,
       b2sums,
@@ -262,16 +305,16 @@ function writePkgbuildNodeJs(
       package: [
         packagePre,
         `\
-npm install -g --user root --prefix "\${pkgdir}/usr" "\${srcdir}/\${pkgname}-\${pkgver}.tgz" --cache "\${srcdir}/npm-cache"
+npm install -g --user root --prefix "\${pkgdir}/usr" \\
+  "\${srcdir}/\${pkgname}-\${pkgver}.tgz" --cache "\${srcdir}/npm-cache"
 
-# Non-deterministic race in npm gives 777 permissions to random directories.
-# See https://github.com/npm/npm/issues/9359 for details.
+# Non-deterministic race in npm gives 777 permissions to random directories
+# https://github.com/npm/npm/issues/9359
 find "\${pkgdir}/usr" -type d -exec chmod 755 {} +
 
-# npm gives ownership of ALL FILES to build user
+# npm gives ownership of all files to build user
 # https://bugs.archlinux.org/task/63396
-chown -R root:root "$pkgdir"\
-        `,
+chown -R root:root "\${pkgdir}"`,
         packagePost,
       ].filter((block) => block != null).join('\n'),
     },
