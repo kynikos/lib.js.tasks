@@ -38,6 +38,15 @@ function npmInteractive(args, options, allowedStatus) {
 }
 
 
+function npxSync(args, options) {
+  return runSync(
+    '/usr/bin/npx',
+    args,
+    options,
+  )
+}
+
+
 function npxInteractive(args, options, allowedStatus) {
   return spawnInteractive({
     command: '/usr/bin/npx',
@@ -83,6 +92,7 @@ module.exports = {
   runSync,
   spawnInteractive,
   npmInteractive,
+  npxSync,
   npxInteractive,
   eslint,
   webpackInteractive,
