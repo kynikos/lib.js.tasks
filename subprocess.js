@@ -28,6 +28,15 @@ function spawnInteractive({command, args, options = {}, allowedStatus = [0]}) {
 }
 
 
+function npmSync(args, options) {
+  return runSync(
+    '/usr/bin/npm',
+    args,
+    options,
+  )
+}
+
+
 function npmInteractive(args, options, allowedStatus) {
   return spawnInteractive({
     command: '/usr/bin/npm',
@@ -91,6 +100,7 @@ function firebaseInteractive(args, options) {
 module.exports = {
   runSync,
   spawnInteractive,
+  npmSync,
   npmInteractive,
   npxSync,
   npxInteractive,
