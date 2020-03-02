@@ -48,6 +48,12 @@ function npxInteractive(args, options, allowedStatus) {
 }
 
 
+function eslint(args, options) {
+  // Also use .eslintignore files
+  return npxInteractive(['eslint', ...args], options)
+}
+
+
 function webpackInteractive(args, options) {
   return npxInteractive(['webpack', ...args, '--progress'], options)
 }
@@ -78,6 +84,7 @@ module.exports = {
   spawnInteractive,
   npmInteractive,
   npxInteractive,
+  eslint,
   webpackInteractive,
   gcloudJson,
   gcloudInteractive,
