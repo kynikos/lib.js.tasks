@@ -5,6 +5,7 @@
  * https://github.com/kynikos/lib.js.tasks/blob/master/LICENSE
  */
 
+// TODO: See also execa https://github.com/sindresorhus/execa
 
 /* eslint-disable no-sync,no-await-in-loop,no-use-before-define,no-console */
 const process = require('process')
