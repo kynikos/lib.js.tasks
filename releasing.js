@@ -11,12 +11,19 @@ const {oneLine: L} = require('common-tags')
 
 
 function makeListrTasks(tasksConf) {
-  // TODO: Use Listr's 'skip' functions to ask whether to run some optional
-  //   tasks
   return new Listr(tasksConf.map(({title, fn, alt, subTasksConf}) => {
     const task = {
       title,
       enabled: () => fn !== false,
+    }
+
+    if (fn) {
+      task.skip = () => {
+        if (readlineSync.keyInYN(`${title}?`)) {
+          return false
+        }
+        return true
+      }
     }
 
     task.task = subTasksConf
