@@ -32,7 +32,7 @@ function linkSelf({cwd, ask}) {
 }
 
 
-function linkDependencies({cwd, prefixes, ask, recurse}) {
+function linkDependencies({cwd, regExps, ask, recurse}) {
   const {
     dependencies,
     devDependencies,
@@ -49,7 +49,7 @@ function linkDependencies({cwd, prefixes, ask, recurse}) {
   ].reduce((acc, deps) => {
     if (deps) {
       for (const dep of Object.keys(deps)) {
-        if (prefixes.some((prefix) => dep.startsWith(prefix))) {
+        if (regExps.some((regExp) => regExp.test(dep))) {
           acc.push(dep)
         }
       }
@@ -75,7 +75,7 @@ function linkDependencies({cwd, prefixes, ask, recurse}) {
         linkDependencies({
           // Don't use __dirname here instead of cwd
           cwd: fs.realpathSync(path.resolve(cwd, 'node_modules', dep)),
-          prefixes,
+          regExps,
           ask,
           recurse,
         })
@@ -87,7 +87,7 @@ function linkDependencies({cwd, prefixes, ask, recurse}) {
 }
 
 
-function maintainPackageDependencies(cwd, prefixesToLink, recursiveLinks) {
+function maintainPackageDependencies(cwd, regExpsToLink, recursiveLinks) {
   console.log('Checking outdated dependencies in', cwd, '...')
 
   const outdated = npmInteractive(['outdated'], {cwd}, [0, 1])
@@ -106,7 +106,7 @@ function maintainPackageDependencies(cwd, prefixesToLink, recursiveLinks) {
 
   linkDependencies({
     cwd,
-    prefixes: prefixesToLink,
+    regExps: regExpsToLink,
     ask: true,
     recurse: recursiveLinks,
   })
