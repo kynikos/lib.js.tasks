@@ -7,7 +7,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const {runSync, npmSync} = require('./subprocess')
+const {runSync, spawnInteractive, npmSync} = require('./subprocess')
 
 
 function makeComments(prefix, lines) {
@@ -322,7 +322,32 @@ chown -R root:root "\${pkgdir}"`,
 }
 
 
+function makePkgbuild({buildDir, pkgbuildPath}) {
+  const pkgbuildName = path.basename(pkgbuildPath)
+
+  // eslint-disable-next-line no-sync
+  fs.copyFileSync(pkgbuildPath, path.join(buildDir, pkgbuildName))
+
+  return spawnInteractive({
+    command: 'makepkg',
+    args: ['--force', '--cleanbuild', '-p', pkgbuildName],
+    options: {cwd: buildDir},
+  })
+}
+
+
+function installPkgbuild({buildDir, tarballPath}) {
+  return spawnInteractive({
+    command: 'sudo',
+    args: ['pacman', '--upgrade', tarballPath],
+    options: {cwd: buildDir},
+  })
+}
+
+
 module.exports = {
   writePkgbuild,
   writePkgbuildNodeJs,
+  makePkgbuild,
+  installPkgbuild,
 }
