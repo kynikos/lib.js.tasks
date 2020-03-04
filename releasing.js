@@ -17,28 +17,26 @@ function makeListrTasks(tasksConf) {
       enabled: () => fn !== false,
     }
 
-    if (fn) {
+    if (typeof fn === 'function') {
       task.skip = () => {
-        if (readlineSync.keyInYN(`${title}?`)) {
-          return false
-        }
-        return true
+        return !readlineSync.keyInYNStrict(`${title}?`)
       }
     }
 
-    task.task = subTasksConf
-      ? () => {
+    if (subTasksConf) {
+      task.task = () => {
         return makeListrTasks(subTasksConf)
       }
-      : () => {
-        if (fn == null) {
-          if (!readlineSync.keyInYN(alt)) {
-            throw new Error()
-          }
+    } else if (typeof fn === 'function') {
+      task.task = fn
+    } else {
+      task.task = () => {
+        if (readlineSync.keyInYNStrict(fn || alt)) {
           return true
         }
-        return fn()
+        throw new Error()
       }
+    }
 
     return task
   }))
