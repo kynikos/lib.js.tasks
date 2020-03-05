@@ -29,6 +29,25 @@ function spawnInteractive({command, args, options = {}, allowedStatus = [0]}) {
 }
 
 
+function gitSync(args, options) {
+  return runSync(
+    '/usr/bin/git',
+    args,
+    options,
+  )
+}
+
+
+function gitInteractive(args, options, allowedStatus) {
+  return spawnInteractive({
+    command: '/usr/bin/git',
+    args,
+    options,
+    allowedStatus,
+  })
+}
+
+
 function npmSync(args, options) {
   return runSync(
     '/usr/bin/npm',
@@ -101,6 +120,8 @@ function firebaseInteractive(args, options) {
 module.exports = {
   runSync,
   spawnInteractive,
+  gitSync,
+  gitInteractive,
   npmSync,
   npmInteractive,
   npxSync,
