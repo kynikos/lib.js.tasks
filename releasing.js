@@ -8,6 +8,7 @@
 const readlineSync = require('readline-sync')
 const Listr = require('listr')
 const {oneLine: L} = require('common-tags')
+const {npmInteractive} = require('./subprocess')
 
 
 function makeListrTasks(tasksConf) {
@@ -255,6 +256,17 @@ function releaseProcedure({
 }
 
 
+function npmPublish({tarball, public: public_}) {
+  return npmInteractive([
+    'publish',
+    tarball,
+    '--access',
+    public_ ? 'public' : 'restricted',
+  ])
+}
+
+
 module.exports = {
   releaseProcedure,
+  npmPublish,
 }
