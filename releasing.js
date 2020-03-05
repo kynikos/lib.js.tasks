@@ -5,10 +5,13 @@
  * https://github.com/kynikos/lib.js.tasks/blob/master/LICENSE
  */
 
+const fs = require('fs')
+const path = require('path')
 const readlineSync = require('readline-sync')
 const Listr = require('listr')
 const {oneLine: L} = require('common-tags')
-const {npmInteractive} = require('./subprocess')
+const {runSync, gitSync, gitInteractive, npmInteractive} =
+  require('./subprocess')
 
 
 function makeListrTasks(tasksConf) {
@@ -266,7 +269,68 @@ function npmPublish({tarball, public: public_}) {
 }
 
 
+function submitToAur({buildDir, pkgbase, pkgver}) {
+  const aurRemote = `ssh://aur@aur.archlinux.org/${pkgbase}.git`
+  const aurRemoteLabel = 'aur'
+
+  // eslint-disable-next-line no-sync
+  if (!fs.existsSync(path.join(buildDir, 'PKGBUILD'))) {
+    // Enforce PKGBUILD to be named exactly like that: even though makepkg can
+    // open any file with the -p option, it would be unexpected for the user
+    throw new Error('PKGBUILD not found')
+  }
+
+  if (
+    // eslint-disable-next-line no-sync
+    !fs.existsSync(path.join(buildDir, '.git')) ||
+    gitSync(['remote', '-v'], {cwd: buildDir}) !== aurRemote
+  ) {
+    if (!readlineSync.keyInYNStrict('Set up the AUR repository?')) {
+      throw new Error('AUR repository not properly set up')
+    }
+
+    gitInteractive(['init'], {cwd: buildDir})
+    gitInteractive(
+      ['remote', 'add', aurRemoteLabel, aurRemote],
+      {cwd: buildDir},
+    )
+    gitInteractive(['fetch', aurRemoteLabel], {cwd: buildDir})
+
+    if (
+      !readlineSync.keyInYNStrict(L`Check that the AUR repository was
+        initialized correctly; do you want to continue submitting the package?`)
+    ) {
+      throw new Error('Properly set up the AUR repository')
+    }
+  }
+
+  const srcInfo = runSync('makepkg', ['--printsrcinfo'], {cwd: buildDir})
+  // eslint-disable-next-line no-sync
+  fs.writeFileSync(path.join(buildDir, '.SRCINFO'), srcInfo)
+
+  gitInteractive(
+    ['add', 'PKGBUILD', '.SRCINFO'],
+    {cwd: buildDir},
+  )
+
+  gitInteractive(
+    ['commit', '-m', `Version ${pkgver}`],
+    {cwd: buildDir},
+  )
+
+  if (
+    !readlineSync.keyInYNStrict(L`Verify the correctness of the commit to the
+      AUR repository; do you want to submit the package now?`)
+  ) {
+    throw new Error('Properly commit the changes to the AUR repository')
+  }
+
+  gitInteractive(['push'], {cwd: buildDir})
+}
+
+
 module.exports = {
   releaseProcedure,
   npmPublish,
+  submitToAur,
 }
