@@ -325,8 +325,11 @@ chown -R root:root "\${pkgdir}"`,
 function makePkgbuild({buildDir, pkgbuildPath}) {
   const pkgbuildName = path.basename(pkgbuildPath)
 
-  // eslint-disable-next-line no-sync
-  fs.copyFileSync(pkgbuildPath, path.join(buildDir, pkgbuildName))
+  // Don't copy if pkgbuildPath is already in buildDir
+  if (path.relative(path.dirname(pkgbuildPath), buildDir) !== '') {
+    // eslint-disable-next-line no-sync
+    fs.copyFileSync(pkgbuildPath, path.join(buildDir, pkgbuildName))
+  }
 
   return spawnInteractive({
     command: 'makepkg',
