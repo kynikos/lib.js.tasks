@@ -7,6 +7,7 @@ const commander = require('commander')
 function wrapCommander({
   maintainDependencies,
   lint,
+  build,
   runTests,
   todo,
   docs,
@@ -26,6 +27,12 @@ function wrapCommander({
     .command('lint')
     .description('lint the source code')
     .action(() => lint())
+
+  commander
+    .command('build')
+    .description('build the application')
+    .option('-p, --production', 'build in production mode')
+    .action(({production}) => build({production}))
 
   commander
     .command('test [REGEX]')
