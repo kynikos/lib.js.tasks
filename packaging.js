@@ -239,6 +239,7 @@ function writePkgbuildNodeJs(
     // 'package' is a reserved keyword
     // package: packageFn,
     packagePre,
+    packageInstallLicense,
     packagePost,
   },
 ) {
@@ -313,6 +314,19 @@ find "\${pkgdir}/usr" -type d -exec chmod 755 {} +`,
 # npm gives ownership of all files to build user
 # https://bugs.archlinux.org/task/63396
 chown -R root:root "\${pkgdir}"`,
+        // eslint-disable-next-line no-template-curly-in-string
+        packageInstallLicense && `\
+install -dm755 "\${pkgdir}/usr/share/licenses/\${pkgname}"
+ln -s "${path.join(
+    // eslint-disable-next-line no-template-curly-in-string
+    '../../../lib/node_modules/${pkgname}',
+    packageInstallLicense,
+  )}" \\
+  "${path.join(
+    // eslint-disable-next-line no-template-curly-in-string
+    '${pkgdir}/usr/share/licenses/${pkgname}',
+    packageInstallLicense,
+  )}"`,
         packagePost,
       ].filter((block) => block != null).join('\n\n'),
     },
