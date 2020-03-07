@@ -300,23 +300,21 @@ function writePkgbuildNodeJs(
       check,
       // TODO: Periodically check whether the upstream bugs are fixed
       //   Also update https://wiki.archlinux.org/index.php/Node.js_package_guidelines
-      // TODO: Is https://bugs.archlinux.org/task/63396 fixed?
-      //   Also update https://wiki.archlinux.org/index.php/Node.js_package_guidelines
       package: [
         packagePre,
         `\
 npm install -g --user root --prefix "\${pkgdir}/usr" \\
-  "\${srcdir}/\${pkgname}-\${pkgver}.tgz" --cache "\${srcdir}/npm-cache"
-
+  "\${srcdir}/\${pkgname}-\${pkgver}.tgz" --cache "\${srcdir}/npm-cache"`,
+        `\
 # Non-deterministic race in npm gives 777 permissions to random directories
 # https://github.com/npm/npm/issues/9359
-find "\${pkgdir}/usr" -type d -exec chmod 755 {} +
-
+find "\${pkgdir}/usr" -type d -exec chmod 755 {} +`,
+        `\
 # npm gives ownership of all files to build user
 # https://bugs.archlinux.org/task/63396
 chown -R root:root "\${pkgdir}"`,
         packagePost,
-      ].filter((block) => block != null).join('\n'),
+      ].filter((block) => block != null).join('\n\n'),
     },
   )
 }
