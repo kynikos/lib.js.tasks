@@ -48,6 +48,8 @@ function makeListrTasks(tasksConf) {
 
 
 function releaseProcedure({
+  updateMetafiles,
+  checkNodeJsWebpackConfiguration,
   releaseDependencies,
   checkoutProductionBranch,
   updateVersion,
@@ -87,9 +89,25 @@ function releaseProcedure({
       title: 'Production build',
       subTasksConf: [
         {
-          title: 'Release dependencies',
+          title: "Update project's metafiles",
+          fn: updateMetafiles,
+          alt: L`Did you check that all project's metafiles (package.json,
+            requirements.txt, .gitignore, .npmignore etc.) are up to date?`,
+        },
+        {
+          title: 'Check Node.js/Webpack configuration',
+          fn: checkNodeJsWebpackConfiguration,
+          alt: L`For Node.js/Webpack projects, are all dependencies actually
+            listed as devDependencies in package.json? Webpack bundles them all
+            together and 'npm install' would also unnecessarily install them
+            under node_modules, increasing the package size; if relying on
+            system-wide-installed libraries, use Webpack's 'externals' option.`,
+        },
+        {
+          title: 'Release own dependencies',
           fn: releaseDependencies,
-          alt: 'Did you release all the dependencies?',
+          alt: L`Did you release all the dependencies that you may have updated
+            and linked to this project?`,
         },
         {
           title: 'Check out production branch',
