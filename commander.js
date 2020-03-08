@@ -5,6 +5,7 @@ const commander = require('commander')
 
 
 function wrapCommander({
+  init,
   maintainDependencies,
   lint,
   build,
@@ -18,6 +19,11 @@ function wrapCommander({
   publishToAur,
   release,
 }) {
+  commander
+    .command('init')
+    .description('initialize the repository, e.g. right after cloning it')
+    .action(() => init())
+
   commander
     .command('deps')
     .description('run semi-automated dependency maintenance operations')
