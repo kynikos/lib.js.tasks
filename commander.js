@@ -65,7 +65,8 @@ function wrapCommander({
   commander
     .command('todo')
     .description('generate a todo-report for this very program')
-    .action(() => todo())
+    .option('-l, --label-only', 'exclude todo comments without a label')
+    .action(({labelOnly}) => todo({labelOnly}))
 
   commander
     .command('docs')
