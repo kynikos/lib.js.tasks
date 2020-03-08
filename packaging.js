@@ -304,7 +304,7 @@ function writePkgbuildNodeJs(
       package: [
         packagePre,
         `\
-npm install -g --user root --prefix "\${pkgdir}/usr" \\
+npm install -g --only=production --user root --prefix "\${pkgdir}/usr" \\
   "\${srcdir}/\${pkgname}-\${pkgver}.tgz" --cache "\${srcdir}/npm-cache"`,
         `\
 # Non-deterministic race in npm gives 777 permissions to random directories
