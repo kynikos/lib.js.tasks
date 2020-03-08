@@ -26,6 +26,7 @@ function linkSelf({cwd, ask}) {
     console.log(`Ensuring that ${name} is linked locally...`)
   }
 
+  npmInteractive(['link'], {cwd})
   npmInteractive(['link', name], {cwd})
 
   return true
