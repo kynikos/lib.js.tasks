@@ -74,6 +74,7 @@ function releaseProcedure({
   pushToRemoteGitRepository,
   publishToPackageIndex,
   publishToSoftwareDistributions,
+  updateBugTracker,
   announceRelease,
   advertiseRelease,
   restoreDevelopmentEnvironment,
@@ -248,6 +249,12 @@ function releaseProcedure({
           fn: publishToSoftwareDistributions,
           alt: L`Did you publish the package to software distribution
             repositories such as the Arch User Repository?`,
+        },
+        {
+          title: 'Update bug tracker',
+          fn: updateBugTracker,
+          alt: L`Did you close the milestone on the bug tracker, updated labels,
+            etc.?`,
         },
         {
           title: 'Announce the release',
