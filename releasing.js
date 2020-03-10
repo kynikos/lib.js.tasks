@@ -308,7 +308,8 @@ function submitToAur({buildDir, pkgbase, pkgver}) {
   if (
     // eslint-disable-next-line no-sync
     !fs.existsSync(path.join(buildDir, '.git')) ||
-    gitSync(['remote', '-v'], {cwd: buildDir}) !== aurRemote
+    gitSync(['remote', 'get-url', aurRemoteLabel], {cwd: buildDir}).trim() !==
+      aurRemote
   ) {
     if (!readlineSync.keyInYNStrict('Set up the AUR repository?')) {
       throw new Error('AUR repository not properly set up')
