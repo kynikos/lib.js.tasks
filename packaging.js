@@ -246,8 +246,9 @@ function writePkgbuildNodeJs(
   const tarball0 = `${pkgname}-${pkgver}.tgz`
   const tarball1 = path.join(buildDir, tarball0)
 
+  // npm-sync must be run in the root directory, so the tarball must be moved
+  // afterwards
   npmSync(['pack'])
-
   // eslint-disable-next-line no-sync
   fs.renameSync(tarball0, tarball1)
 
