@@ -88,7 +88,10 @@ function linkDependencies({cwd, regExps, ask, recurse}) {
 }
 
 
-function maintainPackageDependencies(cwd, regExpsToLink, recursiveLinks) {
+function maintainPackageDependencies(cwd, {
+  regExpsToLink = [],
+  recursiveLinks = false,
+}) {
   console.log('Checking outdated dependencies in', cwd, '...')
 
   const outdated = npmInteractive(['outdated'], {cwd}, [0, 1])
