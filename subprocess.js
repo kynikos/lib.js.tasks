@@ -8,6 +8,7 @@
 // TODO: See also execa https://github.com/sindresorhus/execa
 
 /* eslint-disable no-sync,no-await-in-loop,no-use-before-define,no-console */
+const path = require('path')
 const process = require('process')
 const {spawnSync} = require('child_process')
 
@@ -107,6 +108,57 @@ function webpackInteractive(args, env, options) {
 }
 
 
+function python3Interactive({venvPath, args}) {
+  return spawnInteractive({
+    command: path.join(venvPath, 'bin', 'python3'),
+    args,
+  })
+}
+
+
+function python2Interactive({venvPath, args}) {
+  return spawnInteractive({
+    command: path.join(venvPath, 'bin', 'python2'),
+    args,
+  })
+}
+
+
+function pip3({venvPath, args}) {
+  return runSync(path.join(venvPath, 'bin', 'pip3'), args)
+}
+
+
+function pip2({venvPath, args}) {
+  return runSync(path.join(venvPath, 'bin', 'pip2'), args)
+}
+
+
+function pip3Interactive({venvPath, args}) {
+  return spawnInteractive({
+    command: path.join(venvPath, 'bin', 'pip3'),
+    args,
+  })
+}
+
+
+function pip2Interactive({venvPath, args}) {
+  return spawnInteractive({
+    command: path.join(venvPath, 'bin', 'pip2'),
+    args,
+  })
+}
+
+
+function assertPythonVirtualEnv(venvPath) {
+  const pythonPath = runSync('which', ['python'])
+  if (!pythonPath.startsWith(venvPath)) {
+    throw new Error('Not running in the Python virtual environment')
+  }
+  return true
+}
+
+
 function gcloudJson({project, args}) {
   // TODO[setup]: gcloud can also be used through Node
   //   https://cloud.google.com/nodejs/docs/reference/libraries
@@ -151,6 +203,13 @@ module.exports = {
   npxInteractive,
   eslint,
   webpackInteractive,
+  python3Interactive,
+  python2Interactive,
+  pip3,
+  pip2,
+  pip3Interactive,
+  pip2Interactive,
+  assertPythonVirtualEnv,
   gcloudJson,
   gcloudInteractive,
   firebaseInteractive,
