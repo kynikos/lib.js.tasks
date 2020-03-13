@@ -92,8 +92,18 @@ function eslint(args, options) {
 }
 
 
-function webpackInteractive(args, options) {
-  return npxInteractive(['webpack', ...args, '--progress'], options)
+function webpackInteractive(args, env, options) {
+  return npxInteractive(
+    [
+      'webpack',
+      ...args,
+      '--progress',
+      ...Object.entries(env).reduce((acc, [key, val]) => acc.concat(
+        [`--env.${key}`, val],
+      ), []),
+    ],
+    options,
+  )
 }
 
 
