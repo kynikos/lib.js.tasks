@@ -4,6 +4,7 @@
  * Licensed under MIT
  * https://github.com/kynikos/lib.js.tasks/blob/master/LICENSE
  */
+/* eslint-disable no-process-env */
 
 const {npxInteractive} = require('./subprocess')
 
@@ -14,16 +15,8 @@ function jest({
   printConsole,
   printReceived,
   updateExpected,
+  env = {},
 }) {
-  if (printReceived) {
-    // eslint-disable-next-line no-process-env
-    process.env[printReceived] = 'true'
-  }
-  if (updateExpected) {
-    // eslint-disable-next-line no-process-env
-    process.env[updateExpected] = 'true'
-  }
-
   const args = [
     'jest',
     `--silent=${printConsole || printReceived ? 'false' : 'true'}`,
@@ -32,7 +25,10 @@ function jest({
   if (verbose) args.push('--verbose')
   if (testNamePattern) args.push('--testNamePattern', testNamePattern)
 
-  npxInteractive(args)
+  if (printReceived) env[printReceived] = 'true'
+  if (updateExpected) env[updateExpected] = 'true'
+
+  return npxInteractive(args, {env: {...env, ...process.env}})
 }
 
 
