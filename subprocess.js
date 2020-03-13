@@ -107,18 +107,31 @@ function webpackInteractive(args, env, options) {
 }
 
 
-function gcloudJson(...args) {
+function gcloudJson({project, args}) {
   // TODO[setup]: gcloud can also be used through Node
   //   https://cloud.google.com/nodejs/docs/reference/libraries
-  const res = runSync('/usr/bin/gcloud', args.concat('--format=json'))
+  const res = runSync(
+    '/usr/bin/gcloud',
+    args.concat(`--project=${project}`, '--format=json'),
+  )
   return JSON.parse(res)
 }
 
 
-function gcloudInteractive(...args) {
+function gcloudInteractive({project, verbose, args}) {
+  args.push(`--project=${project}`)
+
+  if (verbose) {
+    args.push('--verbosity=debug')
+  }
+
   // TODO[setup]: gcloud can also be used through Node
   //   https://cloud.google.com/nodejs/docs/reference/libraries
-  return spawnInteractive({command: '/usr/bin/gcloud', args})
+  return spawnInteractive({
+    command: '/usr/bin/gcloud',
+    args,
+    options: {shell: true},
+  })
 }
 
 
