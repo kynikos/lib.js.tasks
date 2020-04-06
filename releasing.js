@@ -284,13 +284,18 @@ function releaseProcedure({
 }
 
 
-function npmPublish({tarball, public: public_}) {
-  return npmInteractive([
-    'publish',
-    tarball,
-    '--access',
-    public_ ? 'public' : 'restricted',
-  ])
+function npmPublish({tarball, public: public_, npmCommand}) {
+  return npmInteractive({
+    args: [
+      'publish',
+      tarball,
+      '--access',
+      public_ ? 'public' : 'restricted',
+    ],
+    options: {
+      npmCommand,
+    },
+  })
 }
 
 

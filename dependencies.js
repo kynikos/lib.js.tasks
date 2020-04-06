@@ -14,7 +14,7 @@ const {
 } = require('./subprocess')
 
 
-function linkSelf({cwd, ask}) {
+function linkSelf({cwd, ask, npmCommand}) {
   // eslint-disable-next-line global-require
   const {name} = require(path.resolve(cwd, 'package.json'))
 
@@ -26,14 +26,22 @@ function linkSelf({cwd, ask}) {
     console.log(`Ensuring that ${name} is linked locally...`)
   }
 
-  npmInteractive(['link'], {cwd})
-  npmInteractive(['link', name], {cwd})
+  npmInteractive({
+    args: ['link'],
+    spawnOptions: {cwd},
+    options: {npmCommand},
+  })
+  npmInteractive({
+    args: ['link', name],
+    spawnOptions: {cwd},
+    options: {npmCommand},
+  })
 
   return true
 }
 
 
-function linkDependencies({cwd, regExps, ask, recurse}) {
+function linkDependencies({cwd, regExps, ask, recurse, npmCommand}) {
   const {
     dependencies,
     devDependencies,
@@ -68,7 +76,11 @@ function linkDependencies({cwd, regExps, ask, recurse}) {
     }
 
     for (const dep of localDeps) {
-      npmInteractive(['link', dep], {cwd})
+      npmInteractive({
+        args: ['link', dep],
+        spawnOptions: {cwd},
+        options: {npmCommand},
+      })
 
       if (recurse) {
         // Ensure that the @kynikos dependencies are npm-linked also
@@ -91,21 +103,42 @@ function linkDependencies({cwd, regExps, ask, recurse}) {
 function maintainPackageDependencies(cwd, {
   regExpsToLink = [],
   recursiveLinks = false,
+  npmCommand,
 }) {
   console.log('Checking outdated dependencies in', cwd, '...')
 
-  const outdated = npmInteractive(['outdated'], {cwd}, [0, 1])
+  const outdated = npmInteractive({
+    args: ['outdated'],
+    spawnOptions: {cwd},
+    options: {allowedStatus: [0, 1], npmCommand},
+  })
 
   if (outdated.status === 0) {
     console.log('All dependencies are up to date')
   } else if (readlineSync.keyInYN('Update all dependencies?')) {
-    npmInteractive(['update'], {cwd})
+    npmInteractive({
+      args: ['update'],
+      spawnOptions: {cwd},
+      options: {npmCommand},
+    })
     console.log('Running audit fix...')
-    npmInteractive(['audit', 'fix'], {cwd})
+    npmInteractive({
+      args: ['audit', 'fix'],
+      spawnOptions: {cwd},
+      options: {npmCommand},
+    })
     console.log('Running prune...')
-    npmInteractive(['prune'], {cwd})
+    npmInteractive({
+      args: ['prune'],
+      spawnOptions: {cwd},
+      options: {npmCommand},
+    })
     console.log('Running dedupe...')
-    npmInteractive(['dedupe'], {cwd})
+    npmInteractive({
+      args: ['dedupe'],
+      spawnOptions: {cwd},
+      options: {npmCommand},
+    })
   }
 
   linkDependencies({

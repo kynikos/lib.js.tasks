@@ -58,11 +58,20 @@ function npmSync(args, options) {
 }
 
 
-function npmInteractive(args, options, allowedStatus) {
+function npmInteractive({
+  args,
+  spawnOptions,
+  options,
+}) {
+  const {
+    npmCommand = '/usr/bin/npm',
+    allowedStatus,
+  } = options
+
   return spawnInteractive({
-    command: '/usr/bin/npm',
+    command: npmCommand,
     args,
-    options,
+    options: spawnOptions,
     allowedStatus,
   })
 }
