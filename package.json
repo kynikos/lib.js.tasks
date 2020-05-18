@@ -1,6 +1,6 @@
 {
   "name": "@kynikos/tasks",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Dario Giovannetti <dev@dariogiovannetti.net>",
   "description": "Project task runner helpers",
   "license": "MIT",
