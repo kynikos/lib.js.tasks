@@ -61,7 +61,7 @@ function npmSync(args, options) {
 function npmInteractive({
   args,
   spawnOptions,
-  options,
+  options = {},
 }) {
   const {
     npmCommand = '/usr/bin/npm',
