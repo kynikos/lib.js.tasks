@@ -196,8 +196,11 @@ function gcloudInteractive({project, verbose, args}) {
 }
 
 
-function firebaseInteractive(args, options) {
-  return npxInteractive(['firebase', ...args], options)
+function firebaseInteractive(args, firebaseOptions = {}, processOptions) {
+  if ('project' in firebaseOptions) {
+    args.push('--project', firebaseOptions.project)
+  }
+  return npxInteractive(['firebase', ...args], processOptions)
 }
 
 
