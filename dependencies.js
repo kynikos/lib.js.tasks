@@ -13,6 +13,9 @@ const {
   npmInteractive,
 } = require('./subprocess')
 
+// TODO: See also npm workspaces
+//       https://github.com/npm/rfcs/blob/latest/implemented/0026-workspaces.md
+
 
 function linkSelf({cwd, ask, npmCommand}) {
   // eslint-disable-next-line global-require
