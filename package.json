@@ -12,10 +12,10 @@
     "tasks"
   ],
   "dependencies": {
-    "commander": "^8.2.0",
+    "commander": "^9.0.0",
     "common-tags": "^1.8.0",
-    "eslint": "^7.11.0",
-    "eslint-plugin-promise": "^5.1.0",
+    "eslint": "^8.10.0",
+    "eslint-plugin-promise": "^6.0.0",
     "fs-extra": "^10.0.0",
     "listr": "^0.14.3",
     "readline-sync": "^1.4.10"
