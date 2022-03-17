@@ -109,8 +109,8 @@ function webpackInteractive(args, env, options) {
       ...args,
       '--progress',
       ...Object.entries(env).reduce((acc, [key, val]) => {
-        if (val === true) acc.push(`--env ${key}`)
-        else if (typeof val === 'string') acc.push(`--env ${key}=${val}`)
+        if (val === true) acc.push('--env', key)
+        else if (typeof val === 'string') acc.push('--env', `${key}=${val}`)
         else if (val !== false) {
           throw new Error('Enviroment value must be either true, false or a ' +
           'string')
