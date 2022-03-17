@@ -44,7 +44,7 @@ function linkSelf({cwd, ask, npmCommand}) {
 }
 
 
-function linkDependencies({cwd, regExps, ask, recurse, npmCommand}) {
+function _findLocalDeps(cwd, regExps) {
   const {
     dependencies,
     devDependencies,
@@ -53,7 +53,7 @@ function linkDependencies({cwd, regExps, ask, recurse, npmCommand}) {
     // eslint-disable-next-line global-require
   } = require(path.resolve(cwd, 'package.json'))
 
-  const localDeps = [
+  return [
     dependencies,
     devDependencies,
     peerDependencies,
@@ -68,6 +68,57 @@ function linkDependencies({cwd, regExps, ask, recurse, npmCommand}) {
     }
     return acc
   }, [])
+}
+
+
+function _findLinkDirs(cwd, localDeps) {
+  let shouldLink = false
+  // Do not collect the depDirs directly here, because some may not be linked
+  // yet, so I have to collect them after running 'npm link'
+  const linkDirs = []
+
+  for (const dep of localDeps) {
+    // Do *not* use __dirname here instead of cwd
+    const linkDir = path.resolve(cwd, 'node_modules', dep)
+    const depDir = fs.realpathSync(linkDir)
+    // Do not collect the depDirs directly here, because some may not be
+    // linked yet, so I have to collect them after running 'npm link'
+    linkDirs.push(linkDir)
+
+    // If linkDir === depDir it means that the directory is not a link yet, so
+    // the dependencies must be relinked
+    if (linkDir === depDir) {
+      shouldLink = true
+      // Do not break, I still need to collect *all* the depDirs
+    }
+  }
+
+  return [linkDirs, shouldLink]
+}
+
+
+function _npmLink({cwd, localDeps, npmCommand}) {
+  try {
+    npmInteractive({
+      // I have to link all dependencies with the same 'npm link ...'
+      // command, or the subsequent ones will unlink the previously
+      // linked dependencies; i.e. do *not* run a 'npm link dep' command for
+      // each dependency in a loop
+      args: ['link', ...localDeps],
+      spawnOptions: {cwd},
+      options: {npmCommand},
+    })
+  } catch (error) {
+    console.error(`Some of ${localDeps.join(', ')} may not be ` +
+      "symlinked to the global folder: run 'npm link' from their " +
+      'source folders')
+    throw error
+  }
+}
+
+
+function linkDependencies({cwd, regExps, ask, recurse, npmCommand}) {
+  const localDeps = _findLocalDeps(cwd, regExps)
 
   if (localDeps.length) {
     if (ask) {
@@ -78,22 +129,25 @@ function linkDependencies({cwd, regExps, ask, recurse, npmCommand}) {
       console.log(`Ensuring that ${localDeps.join(', ')} are linked locally...`)
     }
 
-    for (const dep of localDeps) {
-      npmInteractive({
-        args: ['link', dep],
-        spawnOptions: {cwd},
-        options: {npmCommand},
-      })
+    const [linkDirs, shouldLink] = _findLinkDirs(cwd, localDeps)
+
+    if (shouldLink) {
+      _npmLink({cwd, localDeps, npmCommand})
+    }
+
+    for (const linkDir of linkDirs) {
+      // Find the link target again after running 'npm link'
+      const depDir = fs.realpathSync(linkDir)
 
       if (recurse) {
         // Ensure that the @kynikos dependencies are npm-linked also
         // *recursively* in the dependencies themselves
         linkDependencies({
-          // Don't use __dirname here instead of cwd
-          cwd: fs.realpathSync(path.resolve(cwd, 'node_modules', dep)),
+          cwd: depDir,
           regExps,
           ask,
           recurse,
+          npmCommand,
         })
       }
     }
@@ -149,6 +203,7 @@ function maintainPackageDependencies(cwd, {
     regExps: regExpsToLink,
     ask: true,
     recurse: recursiveLinks,
+    npmCommand,
   })
 }
 
