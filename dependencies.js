@@ -5,16 +5,12 @@
  * https://github.com/kynikos/lib.js.tasks/blob/master/LICENSE
  */
 
-/* eslint-disable no-sync,no-await-in-loop,no-use-before-define,no-console */
 const fs = require('fs')
 const path = require('path')
 const readlineSync = require('readline-sync')
 const {
   npmInteractive,
 } = require('./subprocess')
-
-// TODO: See also npm workspaces
-//       https://github.com/npm/rfcs/blob/latest/implemented/0026-workspaces.md
 
 
 function linkSelf({cwd, ask, npmCommand}) {
@@ -50,10 +46,11 @@ function _findLocalDeps(cwd, regExps) {
     devDependencies,
     peerDependencies,
     optionalDependencies,
+    workspaces,
     // eslint-disable-next-line global-require
   } = require(path.resolve(cwd, 'package.json'))
 
-  return [
+  const localDeps = [
     dependencies,
     devDependencies,
     peerDependencies,
@@ -68,6 +65,17 @@ function _findLocalDeps(cwd, regExps) {
     }
     return acc
   }, [])
+
+  if (workspaces) {
+    for (const workspace of workspaces) {
+      localDeps.push(..._findLocalDeps(
+        path.resolve(cwd, workspace),
+        regExps,
+      ))
+    }
+  }
+
+  return localDeps
 }
 
 
@@ -104,6 +112,7 @@ function _npmLink({cwd, localDeps, npmCommand}) {
       // command, or the subsequent ones will unlink the previously
       // linked dependencies; i.e. do *not* run a 'npm link dep' command for
       // each dependency in a loop
+      // BUG[upstream]: Is it an upstream bug?
       args: ['link', ...localDeps],
       spawnOptions: {cwd},
       options: {npmCommand},
